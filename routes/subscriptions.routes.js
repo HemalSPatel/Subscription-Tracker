@@ -36,5 +36,4 @@ subscriptionRouter.get("/upcoming-renewals", (req, res) => {
 
 export default subscriptionRouter;
 
-
 //57:32

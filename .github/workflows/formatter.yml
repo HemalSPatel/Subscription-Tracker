@@ -13,7 +13,7 @@ jobs:
         permissions:
           contents: write
           pull-requests: write  
-          
+
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
@@ -69,6 +69,6 @@ jobs:
 
             - name: Create PR
               env:
-                GH_TOKEN: ${{ secrets.GH_PAT }}  # 🔥 Use PAT instead of default token
+                GH_TOKEN: ${{ secrets.GH_PAT }} 
               run: |
                 gh pr create --base main --head auto/code-formatting-${{ env.BRANCH_SUFFIX }} --title "Apply formatting to main branch" --body "This PR was automatically created to format the code using Prettier."

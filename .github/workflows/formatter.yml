@@ -1,0 +1,66 @@
+name: Format Code
+
+on:
+    push: 
+        branches: [master, main]
+    pull_request:
+        branches: [master, main]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+            
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                node-version: '18'
+            
+            - name: Install Dependancies
+              uses: npm ci #this will perform a clean install every time 
+            
+            - name: Configure git
+              run: |
+                git config --local user.name "github-actions[bot]"
+                git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            
+            - name: Fetch all branches
+              run: git fetch --all
+
+            - name: Update local main
+              run: git checkout main && git pull origin main
+            
+            - name: Generate timestamp
+              id: vars
+              run: echo "BRANCH_SUFFIX=$(date + '%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+            
+            - name: Create and switch to a new branch
+              run: git checkout -b auto/code-formatting-${{ env.BRANCH_SUFFIX }} 
+            
+            - name: Run prettier formatting all of the code
+              run: npx prettier --write "**/*.{.js,json,html,ts}"
+
+            - name: Stage changes
+              run: |
+                git add.--.:/:!package-lock.json'
+                git reset package-lock.json
+            
+            - name: Commit changes
+              run: | 
+                git commit -m "Apply prettier formatting to main" || echo "No changes to commit"
+                git branch
+                git rev-parse --abbrev-ref-HEAD
+            
+            - name: Push branch
+              run:
+                git push origin auto/code-formatting-${{ env.BRANCH_SUFFIX }}
+
+            - name: Create PR
+              run: |
+               gh pr create --base main --head auto/code-formatting-${{ env.BRANCH_SUFFIX }} --title "Apply formatting to main branch"
+            
+              env:
+                GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

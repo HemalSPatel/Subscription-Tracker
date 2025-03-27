@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 const subscriptionSchema = new mongoose.Schema(
   {
     name: {
-      type: String,
-      required: [true, "Subscription name is required."],
-      trim: true,
-      minLegnth: 2,
-      maxLegnth: 100,
+type: String,
+    required: [true, "Subscription name is required."],
+trim: true,
+minLegnth: 2,
+maxLegnth: 100,
     },
     price: {
       type: Number,

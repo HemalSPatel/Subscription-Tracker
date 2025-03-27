@@ -1,74 +1,89 @@
 name: Format Code
 
 on:
-    push: 
-        branches: [master, main]
-    pull_request:
-        branches: [master, main]
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        permissions:
-          contents: write
-          pull-requests: write  
+    permissions:
+      contents: write
+      pull-requests: write  # Required to create PRs
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
-            
-            - name: Set up Node.js
-              uses: actions/setup-node@v3
-              with:
-                node-version: '18'
-            
-            - name: Install Dependencies
-              run: npm ci # clean install
-            
-            - name: Configure git
-              run: |
-                git config --local user.name "github-actions[bot]"
-                git config --local user.email "github-actions[bot]@users.noreply.github.com"
-            
-            - name: Fetch all branches
-              run: git fetch --all
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install Dependencies
+        run: npm ci  # Clean install
 
-            - name: Update local main
-              run: git checkout main && git pull origin main
-            
-            - name: Generate timestamp
-              id: vars
-              run: echo "BRANCH_SUFFIX=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
-            
-            - name: Create and switch to a new branch
-              run: git checkout -b auto/code-formatting-${{ env.BRANCH_SUFFIX }} 
-            
-            - name: Run Prettier formatting
-              run: npx prettier --write "**/*.{js,json,html,ts}"
+      - name: Configure Git
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Fetch all branches
+        run: git fetch --all
 
-            - name: Stage changes
-              run: |
-                git add .
-                git reset package-lock.json
-            
-            - name: Commit changes
-              run: |
-                git commit -m "Apply prettier formatting to main" || echo "No changes to commit"
-                git branch
-                git rev-parse --abbrev-ref HEAD
-            
-            - name: Install GitHub CLI
-              run: sudo apt-get install -y gh
-              
-            - name: Authenticate GitHub CLI
-              run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
-              
-            - name: Push branch
-              run: git push origin auto/code-formatting-${{ env.BRANCH_SUFFIX }}
+      - name: Update local main
+        run: git checkout main && git pull origin main
+      
+      - name: Generate timestamp
+        id: vars
+        run: echo "BRANCH_SUFFIX=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+      
+      - name: Create and switch to a new branch
+        run: git checkout -b auto/code-formatting-${{ env.BRANCH_SUFFIX }} 
+      
+      - name: Run Prettier Formatting
+        run: npx prettier --write "**/*.{js,json,html,ts}"
 
-            - name: Create PR
-              env:
-                GH_TOKEN: ${{ secrets.GH_PAT }} 
-              run: |
-                gh pr create --base main --head auto/code-formatting-${{ env.BRANCH_SUFFIX }} --title "Apply formatting to main branch" --body "This PR was automatically created to format the code using Prettier."
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            echo "SKIP_PR=true" >> $GITHUB_ENV
+          else
+            echo "Changes detected."
+          fi
+
+      - name: Stage changes
+        if: env.SKIP_PR != 'true'
+        run: |
+          git add .
+          git reset package-lock.json  # Ignore package-lock.json changes
+      
+      - name: Commit changes
+        if: env.SKIP_PR != 'true'
+        run: git commit -m "Apply Prettier formatting" || echo "No changes to commit"
+      
+      - name: Install GitHub CLI
+        if: env.SKIP_PR != 'true'
+        run: sudo apt-get install -y gh
+      
+      - name: Authenticate GitHub CLI
+        if: env.SKIP_PR != 'true'
+        run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
+      
+      - name: Push branch
+        if: env.SKIP_PR != 'true'
+        run: git push origin auto/code-formatting-${{ env.BRANCH_SUFFIX }}
+
+      - name: Create PR
+        if: env.SKIP_PR != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}  # Use PAT instead of default token
+        run: |
+          gh pr create --base main --head auto/code-formatting-${{ env.BRANCH_SUFFIX }} \
+            --title "Apply formatting to main branch" \
+            --body "This PR was automatically created to format the code using Prettier."

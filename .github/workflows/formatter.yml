@@ -12,8 +12,8 @@ jobs:
 
         permissions:
           contents: write
-          pull-requests: write
-
+          pull-requests: write  
+          
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
@@ -21,10 +21,10 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: '16'
+                node-version: '18'
             
-            - name: Install dependencies
-              run: npm ci
+            - name: Install Dependencies
+              run: npm ci # clean install
             
             - name: Configure git
               run: |
@@ -53,25 +53,22 @@ jobs:
                 git reset package-lock.json
             
             - name: Commit changes
-              run: | 
+              run: |
                 git commit -m "Apply prettier formatting to main" || echo "No changes to commit"
                 git branch
                 git rev-parse --abbrev-ref HEAD
             
-            - name: Install and Authenticate GitHub CLI
-              run: |
-                sudo apt-get update
-                sudo apt-get install -y gh
-                echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+            - name: Install GitHub CLI
+              run: sudo apt-get install -y gh
+              
+            - name: Authenticate GitHub CLI
+              run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
               
             - name: Push branch
-              run: |
-                git push origin auto/code-formatting-${{ env.BRANCH_SUFFIX }} || (echo "Push failed!" && exit 1)
+              run: git push origin auto/code-formatting-${{ env.BRANCH_SUFFIX }}
 
             - name: Create PR
               env:
-                GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                GH_TOKEN: ${{ secrets.GH_PAT }}  # 🔥 Use PAT instead of default token
               run: |
-                gh pr list --base main --head auto/code-formatting-${{ env.BRANCH_SUFFIX }} | grep "auto/code-formatting-${{ env.BRANCH_SUFFIX }}" && echo "PR already exists" || \
                 gh pr create --base main --head auto/code-formatting-${{ env.BRANCH_SUFFIX }} --title "Apply formatting to main branch" --body "This PR was automatically created to format the code using Prettier."
-              

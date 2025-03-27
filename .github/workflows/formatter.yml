@@ -20,7 +20,7 @@ jobs:
                 node-version: '18'
             
             - name: Install Dependancies
-              uses: npm ci #this will perform a clean install every time 
+              run: npm ci #this will perform a clean install every time 
             
             - name: Configure git
               run: |
@@ -35,7 +35,7 @@ jobs:
             
             - name: Generate timestamp
               id: vars
-              run: echo "BRANCH_SUFFIX=$(date + '%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+              run: echo "BRANCH_SUFFIX=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
             
             - name: Create and switch to a new branch
               run: git checkout -b auto/code-formatting-${{ env.BRANCH_SUFFIX }} 
@@ -45,7 +45,7 @@ jobs:
 
             - name: Stage changes
               run: |
-                git add.--.:/:!package-lock.json'
+                git add .
                 git reset package-lock.json
             
             - name: Commit changes

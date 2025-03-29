@@ -11,7 +11,7 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(express.json());
-app.user(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use("/api/v1/auth", authRouter);

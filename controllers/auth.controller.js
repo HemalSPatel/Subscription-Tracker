@@ -94,4 +94,10 @@ export const signIn = async (req, res, next) => {
   }
 };
 
-// export const signOut = async (req, res, next) => {};
+export const signOut = async (req, res, next) => {
+  try {
+    // TODO: Implement sign out functionality
+  } catch (error) {
+    next(error);
+  }
+};

@@ -8,6 +8,7 @@ const userRouter = Router();
 // TODO: make this route only accessable for admin users
 userRouter.get("/", getUsers);
 
+// uses the authorize middleware to protect this route so that only the currently logged in user can access their own data via bearer token
 userRouter.get("/:id", authorize, getUser);
 
 userRouter.post("/", (req, res) => {

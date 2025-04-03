@@ -24,7 +24,7 @@ const subscriptionSchema = new mongoose.Schema(
       type: String,
       enum: ["Daily", "Weekly", "Monthly", "Yearly"],
     },
-    categorry: {
+    category: {
       type: String,
       enum: [
         "Sports",
@@ -66,7 +66,7 @@ const subscriptionSchema = new mongoose.Schema(
         message: "Renewal date must be after the start date.",
       },
     },
-    subscriber: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", // this is going to reference the user model that was already created
       required: true,
@@ -88,7 +88,7 @@ subscriptionSchema.pre("save", function (next) {
 
     this.renewalDate = new Date(this.startDate);
     this.renewalDate.setDate(
-      thhis.renewalDate.getDate() + renewalPeriods[this.frequency],
+      this.renewalDate.getDate() + renewalPeriods[this.frequency],
     );
   }
 

@@ -80,10 +80,10 @@ subscriptionSchema.pre("save", function (next) {
   //Auto-calculate the renewal date based on the start date and the renewal period
   if (!this.renewalDate) {
     const renewalPeriods = {
-      daily: 1,
-      weekly: 7,
-      monthly: 30, //might want to change this as every month will not have the same number of days (simple approach this is fine for now)
-      yearly: 365,
+      Daily: 1,
+      Weekly: 7,
+      Monthly: 30, //might want to change this as every month will not have the same number of days (simple approach this is fine for now)
+      Yearly: 365,
     };
 
     this.renewalDate = new Date(this.startDate);
@@ -93,7 +93,7 @@ subscriptionSchema.pre("save", function (next) {
   }
 
   //Auto-update the status of the renew date has passed
-  if (this.startDate > this.renewalDate) {
+  if (this.renewalDate < new Date()) {
     this.status = "expired";
   }
 
